@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Update User</title>
+    <style>
+        body {
+            font-family: Arial;
+            margin: 50px;
+            background-color: #f8f9fa;
+        }
+        form {
+            width: 300px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            box-shadow: 0 0 10px #ccc;
+            border-radius: 10px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin: 6px 0;
+        }
+        input[type=submit] {
+            background: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        input[type=submit]:hover {
+            background: #218838;
+        }
+        a {
+            display: block;
+            text-align: center;
+            margin-top: 10px;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align:center;">Update User</h1>
+    <form method="POST">
+        <label>Name:</label>
+        <input type="text" name="name" value="{{ user['name'] }}" required>
+
+        <label>Email:</label>
+        <input type="email" name="email" value="{{ user['email'] }}" required>
+
+        <label>Age:</label>
+        <input type="number" name="age" value="{{ user['age'] }}" required>
+
+        <input type="submit" value="Update User">
+    </form>
+    <a href="{{ url_for('index') }}">⬅️ Back to List</a>
+</body>
+</html>

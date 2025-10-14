@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User List</title>
+    <style>
+        body {
+            font-family: Arial;
+            margin: 40px;
+            background-color: #f8f9fa;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        table {
+            border-collapse: collapse;
+            width: 70%;
+            margin: 20px auto;
+            background: white;
+            box-shadow: 0 0 10px #ccc;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+        .top-link {
+            display: block;
+            width: 70%;
+            margin: 0 auto;
+            text-align: right;
+        }
+        .actions a {
+            margin: 0 5px;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <h1>All Users</h1>
+    <div class="top-link">
+        <a href="{{ url_for('add_user') }}">➕ Add New User</a>
+    </div>
+    <table>
+        <tr>
+            <th>ID</th><th>Name</th><th>Email</th><th>Age</th><th>Actions</th>
+        </tr>
+        {% for user in users %}
+        <tr>
+            <td>{{ user['id'] }}</td>
+            <td>{{ user['name'] }}</td>
+            <td>{{ user['email'] }}</td>
+            <td>{{ user['age'] }}</td>
+            <td class="actions">
+                <a href="{{ url_for('update_user', id=user['id']) }}">✏️ Edit</a> |
+                <a href="{{ url_for('delete_user', id=user['id']) }}">🗑️ Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
