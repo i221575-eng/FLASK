@@ -53,7 +53,7 @@ pipeline {
                 echo 'Checking database schema...'
                 bat '''
                     call %VENV_DIR%\\Scripts\\activate.bat
-                    python -c "import sqlite3; conn = sqlite3.connect('items.db'); print('✓ Database accessible')" || exit 0
+                    python -c "import sqlite3; conn = sqlite3.connect('database.db'); print('✓ Database accessible')" || exit 0
                 '''
             }
         }
@@ -64,13 +64,9 @@ pipeline {
                 bat '''
                     if exist dist rmdir /s /q dist
                     mkdir dist
-                    xcopy /E /I /Y static dist\\static
                     xcopy /E /I /Y templates dist\\templates
                     copy app.py dist\\
-                    copy forms.py dist\\
                     copy requirements.txt dist\\
-                    copy SECURITY_REPORT.md dist\\
-                    copy QUICKSTART.md dist\\
                 '''
             }
         }
@@ -100,3 +96,4 @@ pipeline {
         }
     }
 }
+
