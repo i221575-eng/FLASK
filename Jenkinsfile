@@ -2,7 +2,6 @@ pipeline {
     agent any
     
     environment {
-        PYTHON_VERSION = '3.9'
         VENV_DIR = 'venv'
         APP_NAME = 'ItemManagement'
         FLASK_ENV = 'production'
@@ -16,21 +15,21 @@ pipeline {
             }
         }
         
-        stage('Setup Python Environment') {
+        stage('Setup C:\Users\Abubakar\AppData\Local\Programs\Python\Python313\python.exe Environment') {
             steps {
-                echo 'Setting up Python virtual environment...'
+                echo 'Setting up C:\Users\Abubakar\AppData\Local\Programs\Python\Python313\python.exe virtual environment...'
                 bat '''
-                    python --version
-                    python -m venv %VENV_DIR%
+                    C:\Users\Abubakar\AppData\Local\Programs\Python\Python313\python.exe --version
+                    C:\Users\Abubakar\AppData\Local\Programs\Python\Python313\python.exe -m venv %VENV_DIR%
                     call %VENV_DIR%\\Scripts\\activate.bat
-                    python -m pip install --upgrade pip
+                    C:\Users\Abubakar\AppData\Local\Programs\Python\Python313\python.exe -m pip install --upgrade pip
                 '''
             }
         }
         
         stage('Install Dependencies') {
             steps {
-                echo 'Installing Python dependencies...'
+                echo 'Installing C:\Users\Abubakar\AppData\Local\Programs\Python\Python313\python.exe dependencies...'
                 bat '''
                     call %VENV_DIR%\\Scripts\\activate.bat
                     pip install -r requirements.txt
@@ -53,7 +52,7 @@ pipeline {
                 echo 'Checking database schema...'
                 bat '''
                     call %VENV_DIR%\\Scripts\\activate.bat
-                    python -c "import sqlite3; conn = sqlite3.connect('database.db'); print('✓ Database accessible')" || exit 0
+                    C:\Users\Abubakar\AppData\Local\Programs\Python\Python313\python.exe -c "import sqlite3; conn = sqlite3.connect('database.db'); print('✓ Database accessible')" || exit 0
                 '''
             }
         }
@@ -96,4 +95,5 @@ pipeline {
         }
     }
 }
+
 
