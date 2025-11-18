@@ -5,6 +5,9 @@ pipeline {
         VENV_DIR = 'venv'
         APP_NAME = 'ItemManagement'
         FLASK_ENV = 'production'
+        // Defined exact path here to ensure consistency and easier maintenance
+        // Double backslashes are used to escape the path correctly in Groovy
+        PYTHON_PATH = 'C:\\Users\\Abubakar\\AppData\\Local\\Programs\\Python\\Python313\\python.exe'
     }
     
     stages {
@@ -15,21 +18,21 @@ pipeline {
             }
         }
         
-        stage('Setup C:\Users\Abubakar\AppData\Local\Programs\Python\Python313\python.exe Environment') {
+        stage('Setup Python Environment') {
             steps {
-                echo 'Setting up C:\Users\Abubakar\AppData\Local\Programs\Python\Python313\python.exe virtual environment...'
+                echo "Setting up Python environment using ${env.PYTHON_PATH}..."
                 bat '''
-                    C:\Users\Abubakar\AppData\Local\Programs\Python\Python313\python.exe --version
-                    C:\Users\Abubakar\AppData\Local\Programs\Python\Python313\python.exe -m venv %VENV_DIR%
+                    "%PYTHON_PATH%" --version
+                    "%PYTHON_PATH%" -m venv %VENV_DIR%
                     call %VENV_DIR%\\Scripts\\activate.bat
-                    C:\Users\Abubakar\AppData\Local\Programs\Python\Python313\python.exe -m pip install --upgrade pip
+                    python -m pip install --upgrade pip
                 '''
             }
         }
         
         stage('Install Dependencies') {
             steps {
-                echo 'Installing C:\Users\Abubakar\AppData\Local\Programs\Python\Python313\python.exe dependencies...'
+                echo 'Installing dependencies...'
                 bat '''
                     call %VENV_DIR%\\Scripts\\activate.bat
                     pip install -r requirements.txt
@@ -52,7 +55,7 @@ pipeline {
                 echo 'Checking database schema...'
                 bat '''
                     call %VENV_DIR%\\Scripts\\activate.bat
-                    C:\Users\Abubakar\AppData\Local\Programs\Python\Python313\python.exe -c "import sqlite3; conn = sqlite3.connect('database.db'); print('✓ Database accessible')" || exit 0
+                    "%PYTHON_PATH%" -c "import sqlite3; conn = sqlite3.connect('database.db'); print('✓ Database accessible')" || exit 0
                 '''
             }
         }
@@ -63,7 +66,7 @@ pipeline {
                 bat '''
                     if exist dist rmdir /s /q dist
                     mkdir dist
-                    xcopy /E /I /Y templates dist\\templates
+                    if exist templates xcopy /E /I /Y templates dist\\templates
                     copy app.py dist\\
                     copy requirements.txt dist\\
                 '''
@@ -95,5 +98,3 @@ pipeline {
         }
     }
 }
-
-
