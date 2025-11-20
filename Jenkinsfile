@@ -1,114 +1,81 @@
 pipeline {
     agent any
-    
+
     environment {
-        VENV_DIR = 'venv'
-        APP_NAME = 'ItemManagement'
-        FLASK_ENV = 'production'
-        // Defined exact path here to ensure consistency and easier maintenance
-        // Double backslashes are used to escape the path correctly in Groovy
-        PYTHON_PATH = 'C:\\Users\\Abubakar\\AppData\\Local\\Programs\\Python\\Python313\\python.exe'
+        // SonarQube Server Name (Must match 'Manage Jenkins -> System -> SonarQube servers')
+        SONAR_SERVER_NAME = 'SonarQube Server'
+
+        // SonarQube Project Details
+        SONAR_PROJECT_KEY  = 'FLASK_i221575'
+        SONAR_PROJECT_NAME = 'Lab12'
+
+        // Version tag
+        NEW_VERSION = '1.3.0'
     }
-    
+
     stages {
-        stage('Checkout') {
+        stage('Build') {
             steps {
-                echo 'Checking out code from repository...'
-                checkout scm
+                echo "Building version ${NEW_VERSION} on Windows..."
+                bat 'echo Running Build Step...'
             }
         }
-        
-        stage('Setup Python Environment') {
+
+        stage('SonarQube Analysis') {
             steps {
-                echo "Setting up Python environment using ${env.PYTHON_PATH}..."
-                bat '''
-                    "%PYTHON_PATH%" --version
-                    "%PYTHON_PATH%" -m venv %VENV_DIR%
-                    call %VENV_DIR%\\Scripts\\activate.bat
-                    python -m pip install --upgrade pip
-                '''
-            }
-        }
-        
-        stage('Install Dependencies') {
-            steps {
-                echo 'Installing dependencies...'
-                bat '''
-                    call %VENV_DIR%\\Scripts\\activate.bat
-                    :: Debug: List files to check what was checked out
-                    dir
+                script {
+                    // 1. Get the path to the scanner tool configured in Jenkins
+                    // The name 'sonar_scanner' must match exactly what you entered in 'Global Tool Configuration'
+                    def scannerHome = tool 'sonar-scanner'
                     
-                    :: Safety Check: Create requirements.txt if it is missing (common in labs)
-                    if not exist requirements.txt (
-                        echo Warning: requirements.txt not found. Creating default.
-                        echo Flask> requirements.txt
-                        echo pytest>> requirements.txt
-                    )
-                    
-                    pip install -r requirements.txt
-                '''
+                    // 2. Use the withSonarQubeEnv wrapper to inject tokens/URL
+                    withSonarQubeEnv(SONAR_SERVER_NAME) {
+                        echo "Starting SonarQube Analysis for project ${env.SONAR_PROJECT_NAME}..."
+                        echo "Using Scanner at: ${scannerHome}"
+                        
+                        // 3. Run the scanner using the retrieved path
+                        bat "\"${scannerHome}\\bin\\sonar-scanner\" " + 
+                            "-Dsonar.projectKey=${SONAR_PROJECT_KEY} " + 
+                            "-Dsonar.projectName=\"${SONAR_PROJECT_NAME}\" " + 
+                            "-Dsonar.sources=." 
+                    }
+                }
             }
         }
-        
-        stage('Run Tests') {
+
+        stage('Quality Gate Check') {
             steps {
-                echo 'Running unit tests...'
-                bat '''
-                    call %VENV_DIR%\\Scripts\\activate.bat
-                    pytest --verbose --junit-xml=test-results.xml || exit 0
-                '''
+                timeout(time: 30, unit: 'MINUTES') {
+                    script {
+                        // Wait for SonarQube to finish processing the report
+                        def qg = waitForQualityGate()
+                        if (qg.status != 'OK') {
+                            error "Pipeline failed due to SonarQube Quality Gate failure: ${qg.status}"
+                        }
+                    }
+                }
             }
         }
-        
-        stage('Database Migration Check') {
+
+        stage('Test') {
             steps {
-                echo 'Checking database schema...'
-                bat '''
-                    call %VENV_DIR%\\Scripts\\activate.bat
-                    "%PYTHON_PATH%" -c "import sqlite3; conn = sqlite3.connect('database.db'); print('✓ Database accessible')" || exit 0
-                '''
+                echo 'Testing Project...'
             }
         }
-        
-        stage('Build Artifact') {
+
+        stage('Deploy') {
             steps {
-                echo 'Creating deployment artifact...'
-                bat '''
-                    if exist dist rmdir /s /q dist
-                    mkdir dist
-                    if exist templates xcopy /E /I /Y templates dist\\templates
-                    
-                    :: Safety Check: Create dummy app.py if missing so build succeeds
-                    if not exist app.py echo print("Hello World") > app.py
-                    
-                    copy app.py dist\\
-                    copy requirements.txt dist\\
-                '''
-            }
-        }
-        
-        stage('Archive Artifacts') {
-            steps {
-                echo 'Archiving build artifacts...'
-                archiveArtifacts artifacts: 'dist/**/*', fingerprint: true
-                archiveArtifacts artifacts: 'test-results.xml', allowEmptyArchive: true
+                echo 'Deploying....'
             }
         }
     }
     
-    post {
+    post { 
         always {
-            echo 'Pipeline execution completed!'
-            junit testResults: 'test-results.xml', allowEmptyResults: true
-        }
-        success {
-            echo '✓ Build successful!'
+            echo 'Post build condition running'    
         }
         failure {
-            echo '✗ Build failed! Check logs for details.'
-        }
-        unstable {
-            echo '⚠ Build unstable. Review warnings and test failures.'
+            echo 'Post action if build failed'    
         }
     }
 }
