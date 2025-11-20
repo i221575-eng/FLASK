@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         // SonarQube Server Name (Must match 'Manage Jenkins -> System -> SonarQube servers')
-        SONAR_SERVER_NAME = 'SonarQube Server'
+        SONAR_SERVER_NAME = 'SonarQube'
 
         // SonarQube Project Details
         SONAR_PROJECT_KEY  = 'FLASK_i221575'
@@ -26,7 +26,7 @@ pipeline {
                 script {
                     // 1. Get the path to the scanner tool configured in Jenkins
                     // The name 'sonar_scanner' must match exactly what you entered in 'Global Tool Configuration'
-                    def scannerHome = tool 'sonar-scanner'
+                    def scannerHome = tool 'SonarQubeScanner'
                     
                     // 2. Use the withSonarQubeEnv wrapper to inject tokens/URL
                     withSonarQubeEnv(SONAR_SERVER_NAME) {
@@ -79,3 +79,4 @@ pipeline {
         }
     }
 }
+
