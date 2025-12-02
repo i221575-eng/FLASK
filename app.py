@@ -4,6 +4,7 @@ import sqlite3
 app = Flask(__name__)
 
 # ---------- DATABASE SETUP ----------
+# ---------- DATABASE SETUP2 ----------
 def init_db():
     conn = sqlite3.connect('database.db')
     conn.execute('''CREATE TABLE IF NOT EXISTS users (
