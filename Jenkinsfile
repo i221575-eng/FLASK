@@ -2,15 +2,15 @@ pipeline {
     agent any
 
     environment {
-        // SonarQube server name from "Manage Jenkins → System → SonarQube Servers"
-        SONAR_SERVER_NAME = 'SonarQube'
-
         // SonarQube Project Info
         SONAR_PROJECT_KEY  = 'FLASK_i221575'
         SONAR_PROJECT_NAME = 'Lab12'
 
         // Version tag
         NEW_VERSION = '1.3.0'
+
+        // SonarQube Server URL
+        SONAR_HOST_URL = 'http://192.168.10.1:9005'
     }
 
     stages {
@@ -25,20 +25,18 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 script {
+                    echo "Starting SonarQube Analysis for ${SONAR_PROJECT_NAME} using Docker..."
 
-                    // Must match the name defined in Global Tool Configuration
-                    def scannerHome = tool name: 'SonarQubeScanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
-
-                    withSonarQubeEnv(SONAR_SERVER_NAME) {
-                        echo "Starting SonarQube Analysis for ${SONAR_PROJECT_NAME}..."
-
-                        bat """
-                            "${scannerHome}\\bin\\sonar-scanner.bat" ^
-                            -Dsonar.projectKey=${SONAR_PROJECT_KEY} ^
-                            -Dsonar.projectName=${SONAR_PROJECT_NAME} ^
-                            -Dsonar.sources=.
-                        """
-                    }
+                    // Run SonarScanner in Docker
+                    bat """
+                    docker run --rm ^
+                        -e SONAR_HOST_URL=${SONAR_HOST_URL} ^
+                        -v "%cd%:/usr/src" ^
+                        sonarsource/sonar-scanner-cli ^
+                        -Dsonar.projectKey=${SONAR_PROJECT_KEY} ^
+                        -Dsonar.projectName=${SONAR_PROJECT_NAME} ^
+                        -Dsonar.sources=.
+                    """
                 }
             }
         }
