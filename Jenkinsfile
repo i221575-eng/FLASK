@@ -2,15 +2,10 @@ pipeline {
     agent any
 
     environment {
-        // SonarQube Project Info
         SONAR_PROJECT_KEY  = 'FLASK_i221575'
         SONAR_PROJECT_NAME = 'Lab12'
-
-        // Version tag
-        NEW_VERSION = '1.3.0'
-
-        // SonarQube Server URL
-        SONAR_HOST_URL = 'http://192.168.10.1:9005'
+        NEW_VERSION        = '1.3.0'
+        SONAR_HOST_URL     = 'http://192.168.10.1:9005'
     }
 
     stages {
@@ -25,9 +20,9 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 script {
-                    echo "Starting SonarQube Analysis for ${SONAR_PROJECT_NAME} using Docker..."
-
-                    // Run SonarScanner in Docker
+                    echo "Running SonarQube analysis using Docker scanner..."
+                    
+                    // Use Docker SonarScanner image
                     bat """
                     docker run --rm ^
                         -e SONAR_HOST_URL=${SONAR_HOST_URL} ^
@@ -45,9 +40,10 @@ pipeline {
             steps {
                 timeout(time: 30, unit: 'MINUTES') {
                     script {
+                        // Wait for Quality Gate via SonarQube plugin
                         def qg = waitForQualityGate()
                         if (qg.status != 'OK') {
-                            error "Pipeline failed due to SonarQube Quality Gate failure: ${qg.status}"
+                            error "Pipeline failed due to SonarQube Quality Gate: ${qg.status}"
                         }
                     }
                 }
