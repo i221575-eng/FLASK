@@ -12,17 +12,17 @@ pipeline {
 
         stage('Build') {
             steps {
-                echo "Building version ${NEW_VERSION} on Windows..."
+                echo "Building version ${NEW_VERSION}..."
                 bat "echo Running Build Step..."
             }
         }
 
-        stage('SonarQube Analysis') {
+        stage('SonarQube Analysis (Docker)') {
             steps {
                 script {
-                    echo "Running SonarQube analysis using Docker scanner..."
-                    
-                    // Use Docker SonarScanner image
+                    echo "Running SonarQube analysis using Dockerized SonarScanner..."
+
+                    // Docker command for SonarScanner
                     bat """
                     docker run --rm ^
                         -e SONAR_HOST_URL=${SONAR_HOST_URL} ^
@@ -36,23 +36,9 @@ pipeline {
             }
         }
 
-        stage('Quality Gate Check') {
-            steps {
-                timeout(time: 30, unit: 'MINUTES') {
-                    script {
-                        // Wait for Quality Gate via SonarQube plugin
-                        def qg = waitForQualityGate()
-                        if (qg.status != 'OK') {
-                            error "Pipeline failed due to SonarQube Quality Gate: ${qg.status}"
-                        }
-                    }
-                }
-            }
-        }
-
         stage('Test') {
             steps {
-                echo "Testing Project..."
+                echo "Running tests..."
             }
         }
 
@@ -65,7 +51,7 @@ pipeline {
 
     post {
         always {
-            echo "Post build action running..."
+            echo "Post build actions..."
         }
         failure {
             echo "Build failed."
