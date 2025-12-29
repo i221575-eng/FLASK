@@ -2,74 +2,50 @@ pipeline {
     agent any
 
     environment {
-        // SonarQube server name from "Manage Jenkins → System → SonarQube Servers"
-        SONAR_SERVER_NAME = 'SonarQube'
-        // SonarQube Project Info
-        SONAR_PROJECT_KEY  = 'FLASK_i221575'
-        SONAR_PROJECT_NAME = 'Lab12'
-        // Version tag
-        NEW_VERSION = '1.3.0'
+        // Python environment (adjust if using a virtualenv)
+        PYTHON = "python3"
     }
 
     stages {
-        stage('Build') {
+        stage('Checkout') {
             steps {
-                echo "Building version ${NEW_VERSION} on Windows..."
-                bat "echo Running Build Step..."
+                // Pull code from GitHub
+                git branch: 'main', url: 'https://github.com/i221575-eng/FLASK.git'
             }
         }
 
-        stage('SonarQube Analysis') {
+        stage('Install Dependencies') {
             steps {
-                script {
-                    // Must match the name defined in Global Tool Configuration
-                    def scannerHome = tool name: 'SonarQubeScanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
-                    
-                    withSonarQubeEnv(SONAR_SERVER_NAME) {
-                        echo "Starting SonarQube Analysis for ${SONAR_PROJECT_NAME}..."
-                        bat """
-                            "${scannerHome}\\bin\\sonar-scanner.bat" ^
-                            -Dsonar.projectKey=${SONAR_PROJECT_KEY} ^
-                            -Dsonar.projectName=${SONAR_PROJECT_NAME} ^
-                            -Dsonar.sources=.
-                        """
-                    }
-                }
+                // Install dependencies from requirements.txt
+                sh "${env.PYTHON} -m pip install --upgrade pip"
+                sh "${env.PYTHON} -m pip install -r requirements.txt"
             }
         }
 
-        stage('Quality Gate Check') {
+        stage('Run Tests') {
             steps {
-                timeout(time: 30, unit: 'MINUTES') {
-                    script {
-                        def qg = waitForQualityGate()
-                        if (qg.status != 'OK') {
-                            error "Pipeline failed due to SonarQube Quality Gate failure: ${qg.status}"
-                        }
-                    }
-                }
+                // Run Python tests (if using pytest)
+                sh "${env.PYTHON} -m pytest tests"
             }
         }
 
-        stage('Test') {
+        stage('Build & Deploy') {
             steps {
-                echo "Testing Project..."
-            }
-        }
-
-        stage('Deploy') {
-            steps {
-                echo "Deploying..."
+                // Run the Flask app (basic example)
+                sh "${env.PYTHON} app.py"
             }
         }
     }
 
     post {
         always {
-            echo "Post build action running..."
+            echo 'Pipeline finished.'
+        }
+        success {
+            echo 'Build and deployment succeeded!'
         }
         failure {
-            echo "Build failed."
+            echo 'Build or tests failed.'
         }
     }
 }
