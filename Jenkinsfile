@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     stages {
-
+        // The 'Checkout' stage is usually automatic, but kept here if you prefer manual control
         stage('Checkout Code') {
             steps {
                 git url: 'https://github.com/i221575-eng/FLASK.git', branch: 'main'
@@ -13,14 +13,15 @@ pipeline {
             steps {
                 bat '''
                     python --version
-                    pip install --upgrade pip
-                    pip install -r requierments.txt
+                    python -m pip install --upgrade pip
+                    pip install -r requirements.txt
                 '''
             }
         }
 
         stage('Run Unit Tests') {
             steps {
+                // Ensure pytest is installed in your requirements.txt
                 bat 'pytest'
             }
         }
@@ -28,8 +29,8 @@ pipeline {
         stage('Deploy Application') {
             steps {
                 bat '''
-                    mkdir C:\\flask_app
-                    xcopy /E /I * C:\\flask_app\\
+                    if not exist "C:\\flask_app" mkdir "C:\\flask_app"
+                    xcopy /E /I /Y * "C:\\flask_app\\"
                     echo "Files copied to C:\\flask_app - Deployment simulated"
                 '''
             }
@@ -47,7 +48,7 @@ pipeline {
             echo 'Pipeline completed successfully!'
         }
         failure {
-            echo 'Pipeline failed!'
+            echo 'Pipeline failed! Check the console output for errors.'
         }
     }
 }
